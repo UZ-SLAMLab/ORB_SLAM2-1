@@ -158,7 +158,7 @@ void LocalMapping::ProcessNewKeyFrame()
                 }
             }
         }
-    }    
+    }
 
     // Update links in the Covisibility Graph
     mpCurrentKeyFrame->UpdateConnections();
@@ -256,7 +256,7 @@ void LocalMapping::CreateNewMapPoints()
             const float medianDepthKF2 = pKF2->ComputeSceneMedianDepth(2);
             const float ratioBaselineDepth = baseline/medianDepthKF2;
 
-            if(ratioBaselineDepth<0.01)
+            if(ratioBaselineDepth<0.05)
                 continue;
         }
 
@@ -316,7 +316,7 @@ void LocalMapping::CreateNewMapPoints()
             cosParallaxStereo = min(cosParallaxStereo1,cosParallaxStereo2);
 
             cv::Mat x3D;
-            if(cosParallaxRays<cosParallaxStereo && cosParallaxRays>0 && (bStereo1 || bStereo2 || cosParallaxRays<0.9998))
+            if(cosParallaxRays<cosParallaxStereo && cosParallaxRays>0 && (bStereo1 || bStereo2 || cosParallaxRays<0.9997))
             {
                 // Linear Triangulation Method
                 cv::Mat A(4,4,CV_32F);
@@ -339,7 +339,7 @@ void LocalMapping::CreateNewMapPoints()
             }
             else if(bStereo1 && cosParallaxStereo1<cosParallaxStereo2)
             {
-                x3D = mpCurrentKeyFrame->UnprojectStereo(idx1);                
+                x3D = mpCurrentKeyFrame->UnprojectStereo(idx1);
             }
             else if(bStereo2 && cosParallaxStereo2<cosParallaxStereo1)
             {
@@ -371,7 +371,7 @@ void LocalMapping::CreateNewMapPoints()
                 float v1 = fy1*y1*invz1+cy1;
                 float errX1 = u1 - kp1.pt.x;
                 float errY1 = v1 - kp1.pt.y;
-                if((errX1*errX1+errY1*errY1)>5.991*sigmaSquare1)
+                if((errX1*errX1+errY1*errY1)>0.5991*sigmaSquare1)
                     continue;
             }
             else
@@ -397,7 +397,7 @@ void LocalMapping::CreateNewMapPoints()
                 float v2 = fy2*y2*invz2+cy2;
                 float errX2 = u2 - kp2.pt.x;
                 float errY2 = v2 - kp2.pt.y;
-                if((errX2*errX2+errY2*errY2)>5.991*sigmaSquare2)
+                if((errX2*errX2+errY2*errY2)>0.5991*sigmaSquare2)
                     continue;
             }
             else
@@ -433,7 +433,7 @@ void LocalMapping::CreateNewMapPoints()
             // Triangulation is succesfull
             MapPoint* pMP = new MapPoint(x3D,mpCurrentKeyFrame,mpMap);
 
-            pMP->AddObservation(mpCurrentKeyFrame,idx1);            
+            pMP->AddObservation(mpCurrentKeyFrame,idx1);
             pMP->AddObservation(pKF2,idx2);
 
             mpCurrentKeyFrame->AddMapPoint(pMP,idx1);
@@ -688,7 +688,7 @@ void LocalMapping::KeyFrameCulling()
                     }
                 }
             }
-        }  
+        }
 
         if(nRedundantObservations>0.9*nMPs)
             pKF->SetBadFlag();
@@ -746,7 +746,7 @@ bool LocalMapping::CheckFinish()
 void LocalMapping::SetFinish()
 {
     unique_lock<mutex> lock(mMutexFinish);
-    mbFinished = true;    
+    mbFinished = true;
     unique_lock<mutex> lock2(mMutexStop);
     mbStopped = true;
 }
